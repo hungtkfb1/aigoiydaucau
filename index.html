@@ -702,8 +702,39 @@ countInput.oninput=()=>{
 /* ======================================================
    TOOL: HOÀN THIỆN SRT – CLEAN CORE (DÙNG CHUNG)
    ====================================================== */
+function retimeSRTLines(lines){
+  const timecodeRegex = /^\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}$/;
+
+  // lấy index các dòng timecode
+  const tcIndexes = [];
+  for(let i=0;i<lines.length;i++){
+    if(timecodeRegex.test(lines[i].trim())){
+      tcIndexes.push(i);
+    }
+  }
+
+  // sửa end = start của timecode kế tiếp
+  for(let i=0;i<tcIndexes.length;i++){
+    const idx = tcIndexes[i];
+    if(i === tcIndexes.length - 1) continue; // dòng cuối giữ nguyên
+
+    const current = lines[idx];
+    const start = current.slice(0, 12);
+
+    const nextIdx = tcIndexes[i+1];
+    const nextStart = lines[nextIdx].slice(0, 12);
+
+    lines[idx] = `${start} --> ${nextStart}`;
+  }
+
+  return lines;
+}
 function cleanSRTText(rawText){
-  const lines = rawText.split(/\r?\n/);
+  let lines = rawText.split(/\r?\n/);
+
+  // 🔧 SỬA TIMING TRƯỚC
+  lines = retimeSRTLines(lines);
+
   let out=[], buf="";
 
   lines.forEach(l=>{
