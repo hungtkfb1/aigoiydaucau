@@ -1,6 +1,1360 @@
-<!doctype html>
-<html>
-  <body>
-    API is running
-  </body>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Video Tools</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* ================= GLOBAL ================= */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  width:100vw;height:100vh;
+  background:#1f2329;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:#e6e6e6;
+}
+
+/* ================= TOP BAR ================= */
+.top-bar{
+  position:fixed;top:0;left:0;
+  width:100%;height:56px;
+  background:#1a1d22;
+  display:flex;align-items:center;
+  padding:0 16px;
+  border-bottom:1px solid #2a2f36;
+  z-index:10;
+}
+.home-btn{cursor:pointer}
+
+/* ================= LAUNCHER ================= */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  display:flex;align-items:center;justify-content:center;
+  padding-top:56px;
+}
+.panel{
+  width:520px;
+  background:#1b1f26;
+  padding:24px;
+  border-radius:10px;
+}
+.tool-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+.tool-item{
+  background:#232933;
+  padding:18px;
+  border-radius:8px;
+  text-align:center;
+  cursor:pointer;
+}
+.tool-item:hover{background:#2b3240}
+
+/* ================= COMMON ================= */
+.screen{
+  display:none;
+  padding-top:56px;
+  height:100vh;
+}
+.screen-inner{
+  height:100%;
+  padding:16px;
+}
+.card{
+  height:100%;
+  background:#1a1d22;
+  border:1px solid #2a2f36;
+  border-radius:10px;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+}
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  gap:10px;
+}
+.btn{
+  background:#232933;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  user-select:none;
+}
+.btn:hover{background:#2b3240}
+.btn.secondary{
+  background:transparent;
+  border:1px solid #2a2f36;
+}
+.btn.secondary:hover{background:#20242b}
+
+.textarea{
+  width:100%;
+  resize:none;
+  background:#0f1115;
+  border:1px solid #2a2f36;
+  border-radius:10px;
+  padding:12px;
+  color:#e6e6e6;
+  line-height:1.5;
+}
+
+/* ================= TOOL: ĐẾM KÝ TỰ ================= */
+.stats{display:flex;gap:10px;margin-top:12px}
+.stat{
+  flex:1;
+  background:#232933;
+  padding:12px;
+  border-radius:10px;
+}
+.stat-label{font-size:12px;color:#b9b9b9}
+.stat-value{font-size:20px;font-weight:700}
+
+/* ================= TOOL: SRT (TEXT MODE) ================= */
+.srt-grid{
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  overflow:hidden;
+}
+.srt-col{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+.srt-col label{
+  font-size:12px;
+  color:#b9b9b9;
+  margin-bottom:6px;
+}
+.srt-col textarea{
+  flex:1;
+  overflow:auto;
+}
+.srt-footer{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid #2a2f36;
+  display:flex;
+  gap:10px;
+}
+
+/* Responsive */
+@media(max-width:900px){
+  .srt-grid{grid-template-columns:1fr}
+}
+
+/* ================= TOOL: SRT (MODE SELECT) ================= */
+.mode-box{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  flex:1;
+  align-content:start;
+}
+.mode-item{
+  background:#232933;
+  border:1px solid #2a2f36;
+  border-radius:10px;
+  padding:16px;
+  cursor:pointer;
+  transition:transform .15s, background .15s;
+}
+.mode-item:hover{
+  background:#2b3240;
+  transform:translateY(-2px);
+}
+.mode-title{
+  font-size:15px;
+  font-weight:700;
+  margin-bottom:6px;
+}
+.mode-desc{
+  font-size:12px;
+  color:#b9b9b9;
+  line-height:1.4;
+}
+
+/* ================= TOOL: SRT (FILE MODE) ================= */
+.file-grid{
+  flex:1;
+  display:grid;
+  grid-template-columns: 420px 1fr;
+  gap:12px;
+  overflow:hidden;
+}
+@media(max-width:1100px){
+  .file-grid{grid-template-columns:1fr}
+}
+
+.dropzone{
+  border:1px dashed #3a4150;
+  background:#12161c;
+  border-radius:10px;
+  padding:14px;
+  color:#b9b9b9;
+  text-align:center;
+  margin-top:10px;
+  user-select:none;
+}
+.dropzone.dragover{
+  background:#161b22;
+  border-color:#6b778c;
+  color:#e6e6e6;
+}
+.small-note{
+  font-size:12px;
+  color:#a7a7a7;
+  line-height:1.4;
+  margin-top:10px;
+}
+
+.list-wrap{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  overflow:hidden;
+}
+.list-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.list-title{
+  font-weight:700;
+}
+.file-list{
+  flex:1;
+  overflow:auto;
+  border:1px solid #2a2f36;
+  border-radius:10px;
+  background:#0f1115;
+}
+.file-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 10px;
+  border-bottom:1px solid #20242b;
+  cursor:pointer;
+}
+.file-row:hover{background:#141822}
+.file-row.active{background:#171c27}
+.file-name{
+  font-size:13px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.badge{
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid #2a2f36;
+  color:#b9b9b9;
+  background:#141822;
+}
+.badge.ok{color:#e6e6e6;background:#182028;border-color:#2b3b52}
+.row-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+.kebab{
+  width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:8px;
+  background:#232933;
+  border:1px solid #2a2f36;
+}
+.kebab:hover{background:#2b3240}
+.menu{
+  position:absolute;
+  background:#1a1d22;
+  border:1px solid #2a2f36;
+  border-radius:10px;
+  min-width:160px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.35);
+  padding:6px;
+  z-index:50;
+  display:none;
+}
+.menu button{
+  width:100%;
+  text-align:left;
+  background:transparent;
+  border:0;
+  color:#e6e6e6;
+  padding:10px 10px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.menu button:hover{background:#232933}
+
+.preview-wrap{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  overflow:hidden;
+}
+.preview-title{
+  font-weight:700;
+  margin-bottom:10px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.preview-sub{
+  font-size:12px;
+  color:#a7a7a7;
+}
+.preview-area{
+  flex:1;
+  overflow:auto;
+}
+.preview-area textarea{
+  height:100%;
+  min-height:260px;
+  overflow:auto;
+}
+
+.file-footer{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid #2a2f36;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="home-btn" id="homeBtn">🏠 Trang chủ</div>
+</div>
+
+<!-- LAUNCHER -->
+<div class="overlay" id="launcher">
+  <div class="panel">
+    <div class="tool-grid">
+      <div class="tool-item" id="toolSRT">📝<br>Hoàn Thiện SRT NQH</div>
+      <div class="tool-item" id="toolCount">🔢<br>Đếm Ký Tự</div>
+      <div class="tool-item" id="toolSplitText">✂️<br>Chia Text</div>
+      <div class="tool-item" id="toolPunctuation">✨<br>Gợi ý dấu câu AI</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SCREEN: ĐẾM KÝ TỰ ================= -->
+<div class="screen" id="screenCount">
+  <div class="screen-inner">
+    <div class="card">
+      <div class="card-header">
+        <div>🔢 Đếm Ký Tự</div>
+        <div class="btn" onclick="showLauncher()">Quay lại</div>
+      </div>
+
+      <textarea class="textarea" id="countInput" style="flex:1;overflow:auto" spellcheck="false"></textarea>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Ký tự</div>
+          <div class="stat-value" id="cChar">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Dòng có nội dung</div>
+          <div class="stat-value" id="cLine">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Full dòng</div>
+          <div class="stat-value" id="cAll">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================
+     TOOL: HOÀN THIỆN SRT NQH – MODE SELECT
+     ====================================================== -->
+<div class="screen" id="screenSRTMode">
+  <div class="screen-inner">
+    <div class="card">
+      <div class="card-header">
+        <div>📝 Hoàn Thiện SRT NQH</div>
+        <div class="btn" onclick="showLauncher()">Quay lại</div>
+      </div>
+
+      <div class="mode-box">
+        <div class="mode-item" id="modeText">
+          <div class="mode-title">✏️ Sửa Text</div>
+          <div class="mode-desc">Dán nội dung SRT vào ô nhập, làm sạch và copy kết quả ngay.</div>
+        </div>
+        <div class="mode-item" id="modeFiles">
+          <div class="mode-title">📂 Sửa File SRT</div>
+          <div class="mode-desc">Chọn hoặc kéo thả nhiều file .srt, làm sạch hàng loạt và tải về (từng file hoặc ZIP).</div>
+        </div>
+      </div>
+
+      <div class="small-note">
+        Gợi ý: Nếu cần xử lý nhiều file, hãy chọn “Sửa File SRT”. Tool chạy offline và không ghi đè file gốc (trình duyệt không cho phép).
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================
+     TOOL: HOÀN THIỆN SRT NQH – TEXT MODE
+     ====================================================== -->
+<div class="screen" id="screenSRTText">
+  <div class="screen-inner">
+    <div class="card">
+
+      <div class="card-header">
+        <div>📝 Hoàn Thiện SRT NQH — ✏️ Sửa Text</div>
+        <div style="display:flex;gap:10px">
+          <div class="btn secondary" onclick="showSRTMode()">Đổi chế độ</div>
+          <div class="btn" onclick="showLauncher()">Quay lại</div>
+        </div>
+      </div>
+
+      <div class="srt-grid">
+        <div class="srt-col">
+          <label>SRT gốc</label>
+          <textarea class="textarea" id="srtInput" spellcheck="false"></textarea>
+        </div>
+        <div class="srt-col">
+          <label>Kết quả</label>
+          <textarea class="textarea" id="srtOutput" readonly spellcheck="false"></textarea>
+        </div>
+      </div>
+
+      <div class="srt-footer">
+        <div class="btn" onclick="cleanSRTTextMode()">Làm sạch</div>
+        <div class="btn" onclick="copySRTTextMode()">Copy</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================
+     TOOL: HOÀN THIỆN SRT NQH – FILE MODE
+     ====================================================== -->
+<div class="screen" id="screenSRTFiles">
+  <div class="screen-inner">
+    <div class="card">
+
+      <div class="card-header">
+        <div>📝 Hoàn Thiện SRT NQH — 📂 Sửa File SRT</div>
+        <div style="display:flex;gap:10px">
+          <div class="btn secondary" onclick="showSRTMode()">Đổi chế độ</div>
+          <div class="btn" onclick="showLauncher()">Quay lại</div>
+        </div>
+      </div>
+
+      <div class="file-grid">
+
+        <!-- LEFT: INPUT + LIST -->
+        <div class="list-wrap">
+
+          <div class="list-header">
+            <div class="list-title">File SRT</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+              <label class="btn" style="display:inline-flex;align-items:center;gap:8px">
+                Chọn File SRT
+                <input id="filePicker" type="file" accept=".srt" multiple style="display:none">
+              </label>
+              <div class="btn" onclick="cleanAllFiles()">Làm Sạch SRT</div>
+            </div>
+          </div>
+
+          <div id="dropzone" class="dropzone">
+            Kéo thả file <b>.srt</b> vào đây
+          </div>
+
+          <div class="small-note">
+            Sau khi làm sạch: click vào file để xem nội dung. Nút ⋮: tải từng file hoặc xóa.
+          </div>
+
+          <div style="margin-top:10px;display:flex;justify-content:flex-end">
+            <div class="btn" onclick="downloadAllZip()">Tải Xuống Toàn Bộ (ZIP)</div>
+          </div>
+
+          <div style="margin-top:10px" class="file-list" id="fileList"></div>
+
+        </div>
+
+        <!-- RIGHT: PREVIEW -->
+        <div class="preview-wrap">
+          <div class="preview-title">
+            <div>Xem nội dung</div>
+            <div class="preview-sub" id="previewInfo">Chọn 1 file để xem.</div>
+          </div>
+          <div class="preview-area">
+            <textarea class="textarea" id="previewArea" readonly spellcheck="false" placeholder="Nội dung file sẽ hiển thị ở đây..."></textarea>
+          </div>
+
+          <div class="file-footer">
+            <div class="btn secondary" onclick="clearFileMode()">Xóa danh sách</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Context menu (⋮) -->
+      <div class="menu" id="ctxMenu">
+        <button id="ctxDownload">⬇️ Tải xuống</button>
+        <button id="ctxDelete">🗑️ Xóa</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= SCREEN: CHIA TEXT ================= -->
+<div class="screen" id="screenSplitText">
+  <div class="screen-inner">
+    <div class="card">
+
+      <div class="card-header">
+        <div>✂️ Chia Text – Chia dòng</div>
+        <div class="btn" onclick="showLauncher()">Quay lại</div>
+      </div>
+
+      <!-- CONFIG -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px">
+        <input class="textarea" id="minCharacterLine" placeholder="Số ký tự xuống dòng (vd: 6)">
+        <input class="textarea" id="listCharacterNewLine" placeholder="Ký tự xuống dòng (vd: : 。 . ， 、 … ……)">
+        <input class="textarea" id="listCharacterDelete" placeholder="Xóa ký tự (nhập token cần xóa, cách nhau bằng dấu cách)">
+        <input class="textarea" id="listCharacterDeleteEndLine" placeholder="Ký tự xoá cuối dòng (vd: ， 、)">
+      </div>
+
+      <!-- TEXT -->
+      <div class="srt-grid">
+        <div class="srt-col">
+          <label>Text gốc</label>
+          <textarea class="textarea" id="content"></textarea>
+        </div>
+        <div class="srt-col">
+          <label>Kết quả</label>
+          <textarea class="textarea" id="result" readonly></textarea>
+        </div>
+      </div>
+
+      <div class="srt-footer">
+        <div class="btn" onclick="runSplitText()">Chia dòng</div>
+        <div class="btn" onclick="copySplitText()">Copy</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= SCREEN: AI PUNCTUATION ================= -->
+<div class="screen" id="screenPunctuation">
+  <div class="screen-inner">
+    <div class="card">
+
+      <div class="card-header">
+        <div>✨ Gợi ý dấu câu (AI)</div>
+        <div class="btn" onclick="showLauncher()">Quay lại</div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <div class="btn" onclick="runPunctuationOffline()">⚙️ Offline</div>
+        <div class="btn secondary" onclick="runPunctuationOnline()">🌐 Online (AI)</div>
+      </div>
+
+      <div class="srt-grid">
+        <div class="srt-col">
+          <label>Text gốc (không dấu)</label>
+          <textarea class="textarea" id="puncInput"></textarea>
+        </div>
+        <div class="srt-col">
+          <label>Kết quả có dấu câu</label>
+          <textarea class="textarea" id="puncOutput" readonly></textarea>
+        </div>
+      </div>
+
+      <div class="srt-footer">
+        <div class="btn" onclick="copyPunctuation()">Copy</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ======================================================
+   SAFE GETTERS (đỡ phụ thuộc biến global theo id)
+   ====================================================== */
+const toolSRT = document.getElementById('toolSRT');
+const toolCount = document.getElementById('toolCount');
+const toolSplitText = document.getElementById('toolSplitText');
+const homeBtn = document.getElementById('homeBtn');
+
+const countInput = document.getElementById('countInput');
+const cChar = document.getElementById('cChar');
+const cLine = document.getElementById('cLine');
+const cAll = document.getElementById('cAll');
+
+const modeText = document.getElementById('modeText');
+const modeFiles = document.getElementById('modeFiles');
+
+const srtInput = document.getElementById('srtInput');
+const srtOutput = document.getElementById('srtOutput');
+
+/* Split tool elements */
+const minCharacterLine = document.getElementById('minCharacterLine');
+const listCharacterNewLine = document.getElementById('listCharacterNewLine');
+const listCharacterDelete = document.getElementById('listCharacterDelete');
+const listCharacterDeleteEndLine = document.getElementById('listCharacterDeleteEndLine');
+const content = document.getElementById('content');
+const result = document.getElementById('result');
+
+/* ======================================================
+   VIEW (LAUNCHER / SCREENS)
+   ====================================================== */
+const launcher = document.getElementById('launcher');
+const screenCount = document.getElementById('screenCount');
+const screenSRTMode = document.getElementById('screenSRTMode');
+const screenSRTText = document.getElementById('screenSRTText');
+const screenSRTFiles = document.getElementById('screenSRTFiles');
+const screenSplitText = document.getElementById('screenSplitText');
+
+function hideAllScreens(){
+  screenCount.style.display='none';
+  screenSRTMode.style.display='none';
+  screenSRTText.style.display='none';
+  screenSRTFiles.style.display='none';
+  screenSplitText.style.display='none';
+}
+
+function showLauncher(){
+  launcher.style.display='flex';
+  hideAllScreens();
+  closeCtxMenu();
+}
+
+function showSRTMode(){
+  launcher.style.display='none';
+  hideAllScreens();
+  screenSRTMode.style.display='block';
+  closeCtxMenu();
+}
+
+/* Launcher buttons */
+toolCount.onclick = ()=>{
+  launcher.style.display='none';
+  hideAllScreens();
+  screenCount.style.display='block';
+  closeCtxMenu();
+};
+
+toolSplitText.onclick = ()=>{
+  launcher.style.display='none';
+  hideAllScreens();
+  screenSplitText.style.display='block';
+  closeCtxMenu();
+};
+
+toolSRT.onclick = showSRTMode;
+homeBtn.onclick = showLauncher;
+
+/* Mode buttons */
+modeText.onclick = ()=>{
+  hideAllScreens();
+  screenSRTText.style.display='block';
+  closeCtxMenu();
+};
+modeFiles.onclick = ()=>{
+  hideAllScreens();
+  screenSRTFiles.style.display='block';
+  closeCtxMenu();
+};
+
+/* ======================================================
+   TOOL: ĐẾM KÝ TỰ
+   ====================================================== */
+countInput.oninput=()=>{
+  const t=countInput.value;
+  cChar.textContent=t.length;
+  const lines=t.replace(/\r\n/g,"\n").split("\n");
+  cAll.textContent=lines.length;
+  cLine.textContent=lines.filter(l=>l.trim()).length;
+};
+
+/* ======================================================
+   TOOL: HOÀN THIỆN SRT – CLEAN CORE (DÙNG CHUNG)
+   ====================================================== */
+function cleanSRTText(rawText){
+  const lines = rawText.split(/\r?\n/);
+  let out=[], buf="";
+
+  lines.forEach(l=>{
+    l=(l||"").toString().trim();
+
+    // Số thứ tự / timestamp / dòng trống: flush buffer
+    if(/^\d+$/.test(l) || /-->/.test(l) || l===""){
+      if(buf){ out.push(buf); buf=""; }
+      out.push(l);
+      return;
+    }
+
+    // Dòng chữ: xóa space + xóa 「」
+    buf += l
+      .replace(/\s+/g,"")
+      .replace(/[「」]/g,"");
+  });
+
+  if(buf) out.push(buf);
+  return out.join("\n");
+}
+
+/* ======================================================
+   TOOL: HOÀN THIỆN SRT – TEXT MODE
+   ====================================================== */
+function cleanSRTTextMode(){
+  srtOutput.value = cleanSRTText(srtInput.value || "");
+}
+function copySRTTextMode(){
+  srtOutput.select();
+  document.execCommand("copy");
+}
+
+/* ======================================================
+   TOOL: HOÀN THIỆN SRT – FILE MODE (STATE)
+   ====================================================== */
+const filePicker = document.getElementById('filePicker');
+const dropzone = document.getElementById('dropzone');
+const fileListEl = document.getElementById('fileList');
+const previewArea = document.getElementById('previewArea');
+const previewInfo = document.getElementById('previewInfo');
+
+let filesState = []; // {id, name, originalText, cleanedText, cleaned}
+let activeId = null;
+
+function uid(){
+  return Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+
+function setPreview(fileObj){
+  if(!fileObj){
+    previewArea.value = "";
+    previewInfo.textContent = "Chọn 1 file để xem.";
+    return;
+  }
+  const content = fileObj.cleaned ? fileObj.cleanedText : fileObj.originalText;
+  previewArea.value = content || "";
+  previewInfo.textContent = `${fileObj.name} — ${fileObj.cleaned ? "Đã làm sạch" : "Chưa làm sạch"}`;
+}
+
+function renderFileList(){
+  fileListEl.innerHTML = "";
+
+  if(filesState.length===0){
+    const empty = document.createElement("div");
+    empty.style.padding="14px";
+    empty.style.color="#a7a7a7";
+    empty.style.fontSize="13px";
+    empty.textContent="Chưa có file nào. Hãy chọn hoặc kéo thả file .srt vào.";
+    fileListEl.appendChild(empty);
+    setPreview(null);
+    activeId = null;
+    return;
+  }
+
+  for(const f of filesState){
+    const row = document.createElement("div");
+    row.className = "file-row" + (f.id===activeId ? " active" : "");
+    row.dataset.id = f.id;
+
+    const left = document.createElement("div");
+    left.style.minWidth="0";
+    const name = document.createElement("div");
+    name.className="file-name";
+    name.textContent = f.name;
+    left.appendChild(name);
+
+    const right = document.createElement("div");
+    right.className="row-right";
+
+    const badge = document.createElement("div");
+    badge.className = "badge" + (f.cleaned ? " ok" : "");
+    badge.textContent = f.cleaned ? "Đã làm sạch" : "Chưa làm sạch";
+
+    const kebab = document.createElement("div");
+    kebab.className="kebab";
+    kebab.textContent="⋮";
+    kebab.title="Tùy chọn";
+
+    // click row -> preview
+    row.addEventListener("click",(e)=>{
+      if(e.target===kebab) return;
+      activeId = f.id;
+      renderFileList();
+      setPreview(f);
+    });
+
+    // kebab menu
+    kebab.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      openCtxMenuForFile(f.id, kebab);
+    });
+
+    right.appendChild(badge);
+    right.appendChild(kebab);
+
+    row.appendChild(left);
+    row.appendChild(right);
+    fileListEl.appendChild(row);
+  }
+}
+
+/* ======================================================
+   FILE PICK + DROP
+   ====================================================== */
+filePicker.addEventListener("change", async (e)=>{
+  const list = Array.from(e.target.files || []);
+  await addFiles(list);
+  filePicker.value = "";
+});
+
+dropzone.addEventListener("dragover", (e)=>{
+  e.preventDefault();
+  dropzone.classList.add("dragover");
+});
+dropzone.addEventListener("dragleave", ()=>{
+  dropzone.classList.remove("dragover");
+});
+dropzone.addEventListener("drop", async (e)=>{
+  e.preventDefault();
+  dropzone.classList.remove("dragover");
+  const list = Array.from(e.dataTransfer.files || []).filter(f=>f.name.toLowerCase().endsWith(".srt"));
+  await addFiles(list);
+});
+
+async function addFiles(fileList){
+  if(!fileList || fileList.length===0) return;
+
+  for(const file of fileList){
+    if(!file || !file.name) continue;
+    if(!file.name.toLowerCase().endsWith(".srt")) continue;
+
+    const text = await file.text();
+    filesState.push({
+      id: uid(),
+      name: file.name,
+      originalText: text,
+      cleanedText: "",
+      cleaned: false
+    });
+  }
+
+  activeId = filesState[filesState.length-1].id;
+  renderFileList();
+  setPreview(filesState.find(x=>x.id===activeId) || null);
+}
+
+/* ======================================================
+   CLEAN ALL FILES
+   ====================================================== */
+function cleanAllFiles(){
+  if(filesState.length===0){
+    alert("Chưa có file nào để làm sạch.");
+    return;
+  }
+  for(const f of filesState){
+    f.cleanedText = cleanSRTText(f.originalText || "");
+    f.cleaned = true;
+  }
+  renderFileList();
+  const active = filesState.find(x=>x.id===activeId) || filesState[0];
+  activeId = active?.id || null;
+  setPreview(active || null);
+}
+
+/* ======================================================
+   SINGLE FILE DOWNLOAD / DELETE (CTX MENU)
+   ====================================================== */
+const ctxMenu = document.getElementById("ctxMenu");
+const ctxDownload = document.getElementById("ctxDownload");
+const ctxDelete = document.getElementById("ctxDelete");
+
+let ctxFileId = null;
+
+function openCtxMenuForFile(fileId, anchorEl){
+  ctxFileId = fileId;
+  const rect = anchorEl.getBoundingClientRect();
+  ctxMenu.style.left = Math.min(rect.left, window.innerWidth - 180) + "px";
+  ctxMenu.style.top  = (rect.bottom + 6) + "px";
+  ctxMenu.style.display = "block";
+}
+
+function closeCtxMenu(){
+  ctxMenu.style.display = "none";
+  ctxFileId = null;
+}
+
+document.addEventListener("click", ()=> closeCtxMenu());
+ctxMenu.addEventListener("click",(e)=> e.stopPropagation());
+
+ctxDownload.addEventListener("click", ()=>{
+  const f = filesState.find(x=>x.id===ctxFileId);
+  if(!f){ closeCtxMenu(); return; }
+  if(!f.cleaned){
+    const ok = confirm("File này chưa làm sạch. Bạn muốn tải bản gốc hay làm sạch trước?\nOK = Làm sạch rồi tải | Cancel = Tải bản gốc");
+    if(ok){
+      f.cleanedText = cleanSRTText(f.originalText || "");
+      f.cleaned = true;
+      renderFileList();
+    }
+  }
+  const content = f.cleaned ? f.cleanedText : f.originalText;
+  downloadTextFile(f.name, content || "");
+  closeCtxMenu();
+});
+
+ctxDelete.addEventListener("click", ()=>{
+  const idx = filesState.findIndex(x=>x.id===ctxFileId);
+  if(idx<0){ closeCtxMenu(); return; }
+
+  const wasActive = filesState[idx].id === activeId;
+  filesState.splice(idx,1);
+
+  if(filesState.length===0){
+    activeId = null;
+    setPreview(null);
+  }else if(wasActive){
+    activeId = filesState[Math.max(0, idx-1)].id;
+    setPreview(filesState.find(x=>x.id===activeId) || null);
+  }
+  renderFileList();
+  closeCtxMenu();
+});
+
+/* ======================================================
+   DOWNLOAD HELPERS
+   ====================================================== */
+function downloadTextFile(filename, text){
+  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 500);
+}
+
+/* ======================================================
+   ZIP (STORE, NO COMPRESSION) – OFFLINE
+   ====================================================== */
+function crc32(buf){
+  let c = 0 ^ (-1);
+  for(let i=0;i<buf.length;i++){
+    c = (c>>>8) ^ CRC_TABLE[(c ^ buf[i]) & 0xFF];
+  }
+  return (c ^ (-1)) >>> 0;
+}
+const CRC_TABLE = (() => {
+  let table = new Uint32Array(256);
+  for(let i=0;i<256;i++){
+    let c=i;
+    for(let k=0;k<8;k++){
+      c = (c & 1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1);
+    }
+    table[i]=c>>>0;
+  }
+  return table;
+})();
+
+function utf8Bytes(str){
+  return new TextEncoder().encode(str);
+}
+function u16(n){ return [n & 255, (n>>>8) & 255]; }
+function u32(n){ return [n & 255, (n>>>8) & 255, (n>>>16) & 255, (n>>>24) & 255]; }
+
+function buildZip(entries){
+  let fileParts = [];
+  let centralParts = [];
+  let offset = 0;
+
+  for(const e of entries){
+    const nameBytes = utf8Bytes(e.name);
+    const data = e.dataUint8;
+    const crc = crc32(data);
+    const size = data.length;
+
+    const local = [
+      ...u32(0x04034b50),
+      ...u16(20),
+      ...u16(0),
+      ...u16(0),
+      ...u16(0),
+      ...u16(0),
+      ...u32(crc),
+      ...u32(size),
+      ...u32(size),
+      ...u16(nameBytes.length),
+      ...u16(0)
+    ];
+    fileParts.push(new Uint8Array(local));
+    fileParts.push(nameBytes);
+    fileParts.push(data);
+
+    const central = [
+      ...u32(0x02014b50),
+      ...u16(20),
+      ...u16(20),
+      ...u16(0),
+      ...u16(0),
+      ...u16(0),
+      ...u16(0),
+      ...u32(crc),
+      ...u32(size),
+      ...u32(size),
+      ...u16(nameBytes.length),
+      ...u16(0),
+      ...u16(0),
+      ...u16(0),
+      ...u16(0),
+      ...u32(0),
+      ...u32(offset)
+    ];
+    centralParts.push(new Uint8Array(central));
+    centralParts.push(nameBytes);
+
+    offset += local.length + nameBytes.length + data.length;
+  }
+
+  const centralStart = offset;
+  for(const p of centralParts){
+    offset += p.length;
+  }
+  const centralSize = offset - centralStart;
+  const totalEntries = entries.length;
+
+  const end = [
+    ...u32(0x06054b50),
+    ...u16(0),
+    ...u16(0),
+    ...u16(totalEntries),
+    ...u16(totalEntries),
+    ...u32(centralSize),
+    ...u32(centralStart),
+    ...u16(0)
+  ];
+
+  const allParts = [...fileParts, ...centralParts, new Uint8Array(end)];
+  return new Blob(allParts, {type:"application/zip"});
+}
+
+function downloadAllZip(){
+  if(filesState.length===0){
+    alert("Chưa có file nào.");
+    return;
+  }
+  const cleaned = filesState.filter(f=>f.cleaned);
+  if(cleaned.length===0){
+    const ok = confirm("Chưa có file nào được làm sạch. Bạn muốn làm sạch tất cả rồi tải ZIP không?");
+    if(ok){
+      cleanAllFiles();
+    }else{
+      return;
+    }
+  }
+  const finalList = filesState.filter(f=>f.cleaned);
+  if(finalList.length===0){
+    alert("Không có file đã làm sạch để tạo ZIP.");
+    return;
+  }
+
+  const entries = finalList.map(f=>{
+    const bytes = new TextEncoder().encode(f.cleanedText || "");
+    return { name: f.name, dataUint8: bytes };
+  });
+
+  const zipBlob = buildZip(entries);
+  const url = URL.createObjectURL(zipBlob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "cleaned_srt.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 800);
+}
+
+/* ======================================================
+   FILE MODE UTIL
+   ====================================================== */
+function clearFileMode(){
+  const ok = confirm("Xóa toàn bộ danh sách file trong tool? (File gốc trên máy không bị ảnh hưởng)");
+  if(!ok) return;
+  filesState = [];
+  activeId = null;
+  renderFileList();
+  setPreview(null);
+  closeCtxMenu();
+}
+
+/* init list */
+renderFileList();
+
+/* ======================================================
+   DISABLE SPELLCHECK FOR ALL TEXTAREA
+   ====================================================== */
+document.querySelectorAll('textarea').forEach(t => {
+  t.setAttribute('spellcheck', 'false');
+});
+
+/* ======================================================
+   TOOL: CHIA TEXT (UPDATED)
+   - hỗ trợ token đa ký tự
+   - ô XÓA KÝ TỰ: xóa hoàn toàn token
+   ====================================================== */
+function parseTokens(s){
+  // tách theo whitespace, loại bỏ rỗng
+  return (s || "")
+    .replace(/\r?\n/g, " ")
+    .split(/\s+/)
+    .map(x => x.trim())
+    .filter(Boolean);
+}
+
+function sortByLengthDesc(arr){
+  return [...arr].sort((a,b)=> b.length - a.length);
+}
+
+/* Defaults giống tool cũ */
+(function initSplitDefaults(){
+  if(minCharacterLine) minCharacterLine.value = "6";
+  if(listCharacterNewLine) listCharacterNewLine.value = ": 。 . ， 、 “ ！ ： ； ？ --- ... ……";
+  // trước đây là "kí tự -> khoảng trắng" (đổi thành xóa ký tự)
+  if(listCharacterDelete) listCharacterDelete.value = "” “ --- 「 」";
+  if(listCharacterDeleteEndLine) listCharacterDeleteEndLine.value = "， 、";
+})();
+
+function runSplitText(){
+  const minLen = parseInt(minCharacterLine.value || "6", 10) || 6;
+
+  // token sets
+  let newlineTokens = parseTokens(listCharacterNewLine.value);
+  let deleteTokens  = parseTokens(listCharacterDelete.value);        // XÓA HẲN
+  let trimTokens    = parseTokens(listCharacterDeleteEndLine.value); // xóa nếu nằm CUỐI dòng
+
+  // ưu tiên match token dài trước (.../---/……)
+  newlineTokens = sortByLengthDesc(newlineTokens);
+  deleteTokens  = sortByLengthDesc(deleteTokens);
+  trimTokens    = sortByLengthDesc(trimTokens);
+
+  // lấy text, tôn trọng xuống dòng input: gộp các dòng thành 1 chuỗi (giống tool cũ của bạn)
+  let raw = (content.value || "");
+  let tempLines = raw.replace(/\r\n/g,"\n").split("\n").filter(l => l.trim().length > 0);
+  const text = tempLines.join("\n"); // giữ \n để không dính từ nếu bạn muốn (có thể đổi join("") nếu thích)
+
+  // 1) build lines theo dấu ngắt newlineTokens
+  const lines = [];
+  let buf = "";
+  let i = 0;
+
+  while(i < text.length){
+    let matched = null;
+
+    // match token newline
+    for(const t of newlineTokens){
+      if(t && text.startsWith(t, i)){
+        matched = t;
+        break;
+      }
+    }
+
+    if(matched){
+      buf += matched;
+      if(buf.trim().length >= minLen){
+        lines.push(buf.trim());
+        buf = "";
+      }
+      i += matched.length;
+      continue;
+    }
+
+    // normal char
+    const ch = text[i];
+    // nếu gặp newline gốc của input: coi như phân cách nhẹ (không tự push line)
+    if(ch === "\n"){
+      // bạn có thể chọn:
+      // buf += " ";  // nếu muốn coi newline input là khoảng trắng
+      // hoặc bỏ qua:
+      // do nothing
+      i++;
+      continue;
+    }
+
+    buf += ch;
+    i++;
+  }
+  if(buf.trim()) lines.push(buf.trim());
+
+  // 2) delete tokens anywhere + trim tokens at end
+  let out = lines.map(l=>{
+    // XÓA token ở mọi vị trí
+    for(const t of deleteTokens){
+      if(!t) continue;
+      l = l.split(t).join("");
+    }
+
+    // xóa token nếu nó nằm ở cuối dòng
+    let changed = true;
+    while(changed){
+      changed = false;
+      l = l.trim();
+      for(const t of trimTokens){
+        if(!t) continue;
+        if(l.endsWith(t)){
+          l = l.slice(0, -t.length);
+          changed = true;
+        }
+      }
+    }
+
+    return l.trim();
+  }).filter(l => l.length > 0);
+
+  result.value = out.join("\n\n");
+}
+
+function copySplitText(){
+  result.select();
+  document.execCommand("copy");
+}
+
+/* ======================================================
+   TOOL: AI PUNCTUATION
+   ====================================================== */
+const toolPunctuation = document.getElementById('toolPunctuation');
+const screenPunctuation = document.getElementById('screenPunctuation');
+const puncInput = document.getElementById('puncInput');
+const puncOutput = document.getElementById('puncOutput');
+
+/* thêm vào hideAllScreens */
+const _oldHideAllScreens = hideAllScreens;
+hideAllScreens = function(){
+  _oldHideAllScreens();
+  screenPunctuation.style.display = 'none';
+};
+
+/* launcher click */
+toolPunctuation.onclick = ()=>{
+  launcher.style.display = 'none';
+  hideAllScreens();
+  screenPunctuation.style.display = 'block';
+};
+
+/* ---------------- OFFLINE (RULE-BASED) ---------------- */
+function runPunctuationOffline(){
+  let t = puncInput.value || "";
+  if(!t.trim()){
+    puncOutput.value = "";
+    return;
+  }
+
+  t = t.replace(/\s+/g,"");
+
+  // từ nối thường gặp trong truyện
+  const commaWords = ["但是","如果","因為","所以","於是","忽然","然後","接著","結果"];
+  commaWords.forEach(w=>{
+    t = t.split(w).join(w + "，");
+  });
+
+  // nghi vấn
+  t = t.replace(/嗎/g,"嗎？");
+  t = t.replace(/怎麼/g,"怎麼？");
+  t = t.replace(/為什麼/g,"為什麼？");
+
+  // cảm thán
+  t = t.replace(/真是/g,"真是！");
+  t = t.replace(/太/g,"太…");
+
+  // fallback: ngắt câu theo độ dài
+  let out = "";
+  let buf = "";
+  for(const ch of t){
+    buf += ch;
+    if(buf.length >= 18){
+      out += buf + "。";
+      buf = "";
+    }
+  }
+  if(buf) out += buf + "。";
+
+  puncOutput.value = out;
+}
+
+/* ---------------- ONLINE (AI – placeholder) ---------------- */
+async function runPunctuationOnline(){
+  const raw = (puncInput.value || "").trim();
+  if(!raw){
+    puncOutput.value = "";
+    return;
+  }
+
+  puncOutput.value = "⏳ Đang xử lý AI (batch)...";
+
+  // 1️⃣ chia batch (30 dòng / block)
+  const lines = raw.replace(/\r\n/g,"\n").split("\n");
+  const BATCH_SIZE = 30;
+  const batches = [];
+  for(let i=0;i<lines.length;i+=BATCH_SIZE){
+    batches.push(lines.slice(i,i+BATCH_SIZE).join("\n"));
+  }
+
+  let results = [];
+
+  // 2️⃣ gọi AI từng batch
+  for(let i=0;i<batches.length;i++){
+    puncOutput.value = `⏳ Đang xử lý ${i+1}/${batches.length}...`;
+
+    const res = await fetch("https://YOUR_SERVER_ENDPOINT",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        text: batches[i]
+      })
+    });
+
+    if(!res.ok){
+      throw new Error("AI request failed");
+    }
+
+    const data = await res.json();
+    results.push(data.result);
+  }
+
+  // 3️⃣ ghép lại
+  puncOutput.value = results.join("\n");
+}
+
+</script>
+
+</body>
 </html>
