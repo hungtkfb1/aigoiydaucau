@@ -1316,42 +1316,46 @@ async function runPunctuationOnline(){
     return;
   }
 
-  puncOutput.value = "⏳ Đang xử lý AI (batch)...";
+  puncOutput.value = "⏳ Đang xử lý AI...";
 
-  // 1️⃣ chia batch (30 dòng / block)
-  const lines = raw.replace(/\r\n/g,"\n").split("\n");
-  const BATCH_SIZE = 30;
-  const batches = [];
-  for(let i=0;i<lines.length;i+=BATCH_SIZE){
-    batches.push(lines.slice(i,i+BATCH_SIZE).join("\n"));
-  }
+  try {
+    const lines = raw.replace(/\r\n/g,"\n").split("\n");
+    const BATCH_SIZE = 30;
+    const batches = [];
 
-  let results = [];
-
-  // 2️⃣ gọi AI từng batch
-  for(let i=0;i<batches.length;i++){
-    puncOutput.value = `⏳ Đang xử lý ${i+1}/${batches.length}...`;
-
-    const res = await fetch("/api/punctuate", {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify({
-        text: batches[i]
-      })
-    });
-
-    if(!res.ok){
-      throw new Error("AI request failed");
+    for(let i=0;i<lines.length;i+=BATCH_SIZE){
+      batches.push(lines.slice(i,i+BATCH_SIZE).join("\n"));
     }
 
-    const data = await res.json();
-    results.push(data.result);
-  }
+    let results = [];
 
-  // 3️⃣ ghép lại
-  puncOutput.value = results.join("\n");
+    for(let i=0;i<batches.length;i++){
+      puncOutput.value = `⏳ Đang xử lý ${i+1}/${batches.length}...`;
+
+      const res = await fetch("/api/punctuate", {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+          text: batches[i]
+        })
+      });
+
+      if(!res.ok){
+        const err = await res.text();
+        throw new Error(err);
+      }
+
+      const data = await res.json();
+      results.push(data.result);
+    }
+
+    puncOutput.value = results.join("\n");
+
+  } catch (err) {
+    puncOutput.value = "❌ Lỗi AI: " + err.message;
+  }
 }
 
 </script>
