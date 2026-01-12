@@ -1332,7 +1332,7 @@ async function runPunctuationOnline(){
   for(let i=0;i<batches.length;i++){
     puncOutput.value = `⏳ Đang xử lý ${i+1}/${batches.length}...`;
 
-    const res = await fetch("https://YOUR_SERVER_ENDPOINT",{
+    const res = await fetch("/api/punctuate", {
       method:"POST",
       headers:{
         "Content-Type":"application/json"
