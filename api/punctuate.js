@@ -1,3 +1,5 @@
+import OpenAI from "openai";
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -9,50 +11,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Empty text" });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: "Missing OpenAI API key" });
-    }
-
-    const prompt = `
-Bạn là biên tập viên truyện tiếng Trung.
-Nhiệm vụ:
-- Thêm dấu câu phù hợp: ， 。 ？ ！
-- Giữ nguyên chữ, KHÔNG thêm nội dung mới
-- Không xuống dòng thừa
-- Văn phong tự nhiên như truyện dân gian
-
-Văn bản:
-${text}
-    `.trim();
-
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "You add Chinese punctuation naturally." },
-          { role: "user", content: prompt }
-        ],
-        temperature: 0.3
-      })
+    const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
-    if (!r.ok) {
-      const err = await r.text();
-      throw new Error(err);
-    }
+    const response = await client.responses.create({
+      model: "gpt-4.1-mini",
+      input: `Bạn là biên tập viên truyện tiếng Trung.
+Nhiệm vụ:
+- Thêm dấu câu phù hợp (， 。 ？ ！)
+- KHÔNG thêm nội dung mới
+- KHÔNG xuống dòng
+- Giữ văn phong truyện dân gian
 
-    const data = await r.json();
-    const result = data.choices?.[0]?.message?.content || "";
+Văn bản:
+${text.trim()}`,
+    });
 
-    return res.status(200).json({ result });
+    const output =
+      response.output_text ||
+      response.output?.[0]?.content?.[0]?.text ||
+      "";
 
-  } catch (e) {
-    return res.status(500).json({ error: e.message || "AI error" });
-  }
-}
+    return res.status(200).json({ r
