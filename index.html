@@ -730,7 +730,7 @@ function retimeSRTLines(lines){
   return lines;
 }
   
-const QUOTES_REGEX = /[「」『』“”‘’"]/g;
+const QUOTES_REGEX = /[「」『』“”‘’"｢｣]/g;
 
 function cleanSRTText(rawText){
   let lines = rawText.split(/\r?\n/);
