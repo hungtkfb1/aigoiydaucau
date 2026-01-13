@@ -729,6 +729,9 @@ function retimeSRTLines(lines){
 
   return lines;
 }
+  
+const QUOTES_REGEX = /[「」『』“”‘’"]/g;
+
 function cleanSRTText(rawText){
   let lines = rawText.split(/\r?\n/);
 
@@ -750,7 +753,7 @@ function cleanSRTText(rawText){
     // Dòng chữ: xóa space + xóa 「」
     buf += l
       .replace(/\s+/g,"")
-      .replace(/[「」]/g,"");
+      .replace(QUOTES_REGEX,"");
   });
 
   if(buf) out.push(buf);
